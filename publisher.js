@@ -6,13 +6,14 @@ const {getExpiredLotteries} = require('./utility/apiRequests');
 let poller = new Poller(config.pollingInterval);
 
 main();
+poller.poll();
 
 async function main(){
   const queue = await rabbitMQ.connect(config.rabbitMQ);
   const channel = await queue.createChannel();
   poller.onPoll(async () => {
     await Promise.all([
-      queueExpiredLotteries(channel)
+      queueExpiredLotteries(channel),
     ]);
     poller.poll();
   });
@@ -29,7 +30,5 @@ async function queueExpiredLotteries(channel){
     } catch (err){
       console.log(err)
     }
-    poller.poll();
 }
 
-poller.poll();
