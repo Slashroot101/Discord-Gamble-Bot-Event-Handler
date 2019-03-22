@@ -2,7 +2,7 @@ const config = require('./config.js');
 const rabbitMQ = require('amqplib');
 
 const Poller = require('./utility/Poll');
-const {getExpiredLotteries} = require('./utility/apiRequests');
+const {getExpiredLotteries, setLotteryConsumed} = require('./utility/apiRequests');
 let poller = new Poller(config.pollingInterval);
 
 main();
@@ -24,9 +24,12 @@ async function queueExpiredLotteries(channel){
   await channel.assertQueue(TOPIC_NAME, {durable:true});
     try {
       const expiredLotteries = await getExpiredLotteries();
+      const consumedLotteryIds = [];
       expiredLotteries.forEach(element => {
-        channel.sendToQueue(TOPIC_NAME, Buffer.from(JSON.stringify(element)))
+        channel.sendToQueue(TOPIC_NAME, Buffer.from(JSON.stringify(element)));
+        consumedLotteryIds.push(element.id);
       });
+      await setLotteryConsumed(consumedLotteryIds);
     } catch (err){
       console.log(err)
     }
