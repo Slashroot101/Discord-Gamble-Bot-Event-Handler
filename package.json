@@ -1,0 +1,24 @@
+{
+  "name": "discord-gamblebot-eventhandler",
+  "version": "1.0.0",
+  "description": "an event broker/handler",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Slashroot101/Discord-GambleBot-EventHandler.git"
+  },
+  "author": "slashroot101",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Slashroot101/Discord-GambleBot-EventHandler/issues"
+  },
+  "homepage": "https://github.com/Slashroot101/Discord-GambleBot-EventHandler#readme",
+  "dependencies": {
+    "amqplib": "^0.5.3",
+    "request": "^2.88.0",
+    "request-promise": "^4.2.4"
+  }
+}
