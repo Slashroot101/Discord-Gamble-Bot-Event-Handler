@@ -1,27 +1,28 @@
 const config = require('./config.js');
 const rabbitMQ = require('amqplib');
-const request = require('request-promise');
-const Poller = require('./utility/Poll');
 
+const Poller = require('./utility/Poll');
+const {getExpiredLotteries} = require('./utility/apiRequests');
 let poller = new Poller(config.pollingInterval);
 
-poller.onPoll(async () => {
-  const expiredLotteries = await getExpiredLotteries();
-  console.log(expiredLotteries);
-  poller.poll();
-});
+main();
 
-poller.poll();
+async function main(){
+  const queue = await rabbitMQ.connect(config.rabbitMQ);
+  const channel = await queue.createChannel();
+  await channel.assertQueue(config.topicName, {durable:true});
+  poller.onPoll(async () => {
+    try {
+      const expiredLotteries = await getExpiredLotteries();
+      expiredLotteries.forEach(element => {
+        channel.sendToQueue(config.topicName, Buffer.from(JSON.stringify(element)))
+      });
+    } catch (err){
+      console.log(err)
+    }
 
-async function getExpiredLotteries(){
-  return new Promise(async(resolve) => {
-    const options = {
-      method: 'GET',
-      uri: `${config.apiUrl}/lottery/expired`,
-      json: true
-    };
-
-    const expiredLotteries = await request(options);
-    resolve(expiredLotteries.data.lottery);
+    poller.poll();
   });
 }
+
+poller.poll();
