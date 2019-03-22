@@ -10,19 +10,26 @@ main();
 async function main(){
   const queue = await rabbitMQ.connect(config.rabbitMQ);
   const channel = await queue.createChannel();
-  await channel.assertQueue(config.topicName, {durable:true});
   poller.onPoll(async () => {
+    await Promise.all([
+      queueExpiredLotteries(channel)
+    ]);
+    poller.poll();
+  });
+}
+
+async function queueExpiredLotteries(channel){
+  const TOPIC_NAME = "lottery";
+  await channel.assertQueue(TOPIC_NAME, {durable:true});
     try {
       const expiredLotteries = await getExpiredLotteries();
       expiredLotteries.forEach(element => {
-        channel.sendToQueue(config.topicName, Buffer.from(JSON.stringify(element)))
+        channel.sendToQueue(TOPIC_NAME, Buffer.from(JSON.stringify(element)))
       });
     } catch (err){
       console.log(err)
     }
-
     poller.poll();
-  });
 }
 
 poller.poll();
