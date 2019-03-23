@@ -30,3 +30,5 @@ exports.setLotteryConsumed = async (lotteryIDs)  => {
     resolve(expiredLotteries.data);
   });
 };
+
+

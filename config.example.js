@@ -1,4 +1,4 @@
 module.exports = {
   apiUrl: 'URL TO API',
-  rabbitMQ: 'URL TO RABBITMQ WITH PROTOCOL',
+  nats: 'URL TO RABBITMQ WITH PROTOCOL',
 };

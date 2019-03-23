@@ -1,32 +1,35 @@
 const config = require('./config.js');
-const rabbitMQ = require('amqplib');
+const nats = require('nats');
+
 
 const Poller = require('./utility/Poll');
-const {getExpiredLotteries, setLotteryConsumed} = require('./utility/apiRequests');
+const {getExpiredLotteries, setLotteryConsumed, completeLottery} = require('./utility/apiRequests');
 let poller = new Poller(config.pollingInterval);
 
 main();
 poller.poll();
 
 async function main(){
-  const queue = await rabbitMQ.connect(config.rabbitMQ);
-  const channel = await queue.createChannel();
-  poller.onPoll(async () => {
-    await Promise.all([
-      queueExpiredLotteries(channel),
-    ]);
+  try {
+    const queue = await nats.connect({url: config.nats});
+    poller.onPoll(async () => {
+      await Promise.all([
+        queueExpiredLotteries(queue),
+      ]);
     poller.poll();
   });
+  } catch (err){
+    console.log(err)
+  }
 }
 
-async function queueExpiredLotteries(channel){
+async function queueExpiredLotteries(queue){
   const TOPIC_NAME = "lottery";
-  await channel.assertQueue(TOPIC_NAME, {durable:true});
     try {
       const expiredLotteries = await getExpiredLotteries();
       const consumedLotteryIds = [];
       expiredLotteries.forEach(element => {
-        channel.sendToQueue(TOPIC_NAME, Buffer.from(JSON.stringify(element)));
+        queue.publish(TOPIC_NAME, Buffer.from(JSON.stringify(element)));
         consumedLotteryIds.push(element.id);
       });
       await setLotteryConsumed(consumedLotteryIds);
