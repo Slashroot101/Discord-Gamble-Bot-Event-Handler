@@ -1,9 +1,8 @@
 const config = require('./config.js');
 const nats = require('nats');
 
-
 const Poller = require('./utility/Poll');
-const {getExpiredLotteries, setLotteryConsumed, completeLottery} = require('./utility/apiRequests');
+const {getLotteries, updateLottery} = require('./utility/apiRequests');
 let poller = new Poller(config.pollingInterval);
 
 main();
@@ -26,13 +25,12 @@ async function main(){
 async function queueExpiredLotteries(queue){
   const TOPIC_NAME = "lottery";
     try {
-      const expiredLotteries = await getExpiredLotteries();
-      const consumedLotteryIds = [];
-      expiredLotteries.forEach(element => {
+      const expiredLotteries = await getLotteries({endDate: new Date().toISOString(), isDone: false, isQueued: false});
+      console.log(`Fetched ${expiredLotteries.length} expired lotteries!`);
+      expiredLotteries.forEach(async element => {
         queue.publish(TOPIC_NAME, Buffer.from(JSON.stringify(element)));
-        consumedLotteryIds.push(element.id);
+        await updateLottery(element._id, {isQueued: true});
       });
-      await setLotteryConsumed(consumedLotteryIds);
     } catch (err){
       console.log(err)
     }

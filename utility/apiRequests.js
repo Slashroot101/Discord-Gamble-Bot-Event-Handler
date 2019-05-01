@@ -1,34 +1,28 @@
 const request = require('request-promise');
 const config = require('../config');
 
-exports.getExpiredLotteries= async () => {
-  return new Promise(async(resolve) => {
-    const options = {
-      method: 'GET',
-      uri: `${config.apiUrl}/lottery/expired`,
-      json: true
-    };
+exports.getLotteries = async (query) => {
+  const options = {
+    method: 'GET',
+    uri: `${config.apiUrl}/api/lottery`,
+    qs: query,
+    json: true
+  };
 
-    const expiredLotteries = await request(options);
-    resolve(expiredLotteries.data.lottery);
-  });
+  const lotteries = await request(options);
+  return lotteries.lotteries;
 };
 
-exports.setLotteryConsumed = async (lotteryIDs)  => {
-  return new Promise(async(resolve) => {
-    const options = {
-      method: 'PUT',
-      uri: `${config.apiUrl}/lottery/queue/status`,
-      body: {
-        lotteryIds : lotteryIDs,
-      },
-      json: true
-    };
+exports.updateLottery = async(id, updatedProperties) => {
+  const options = {
+    method: 'PUT',
+    uri: `${config.apiUrl}/api/lottery/${id}`,
+    body: updatedProperties,
+    json: true,
+  };
 
-    const expiredLotteries = await request(options);
-    console.log(expiredLotteries)
-    resolve(expiredLotteries.data);
-  });
+  const lottery = await request(options);
+  return lottery.lottery;
 };
 
 
