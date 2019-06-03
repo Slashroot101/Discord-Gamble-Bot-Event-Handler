@@ -1,5 +1,6 @@
 const config = require('./config.js');
 const nats = require('nats');
+const moment = require('moment');
 
 const Poller = require('./utility/Poll');
 const {getLotteries, updateLottery} = require('./utility/apiRequests');
@@ -36,3 +37,13 @@ async function queueExpiredLotteries(queue){
     }
 }
 
+async function createGlobalLottery(){
+  const lastGlobalLottery = await getLotteries({isDone: true, isQueued: true, localityType: 'Guild', sort: -1});
+  
+}
+
+async function determineNextGlobalLotteryDate(lastLotteryDate, minDays, maxDays){
+  const startDays = Math.floor(Math.random() * maxDays) + minDays;
+  const endDays = Math.floor(Math.random() * startDays) + startDays;
+  return {startDate: moment(lastLotteryDate).add(startDays, 'days'), endDate: moment(lastLotteryDate).add(endDays, 'days')};
+}
