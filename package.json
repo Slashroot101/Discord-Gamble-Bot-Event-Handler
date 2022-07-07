@@ -17,7 +17,7 @@
   },
   "homepage": "https://github.com/Slashroot101/Discord-GambleBot-EventHandler#readme",
   "dependencies": {
-    "moment": "^2.24.0",
+    "moment": "^2.29.4",
     "nats": "^1.2.2",
     "request": "^2.88.0",
     "request-promise": "^4.2.4"
